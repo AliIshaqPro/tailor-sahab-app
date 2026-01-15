@@ -8,22 +8,24 @@ interface CustomerSearchProps {
   placeholder?: string;
 }
 
-export function CustomerSearch({ value, onChange, placeholder = 'گاہک تلاش کریں...' }: CustomerSearchProps) {
+export function CustomerSearch({ value, onChange, placeholder = 'تلاش کریں...' }: CustomerSearchProps) {
   return (
     <div className="relative">
-      <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+      <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
       <Input
+        type="text"
         value={value}
         onChange={(e) => onChange(e.target.value)}
         placeholder={placeholder}
-        className="pr-10 pl-10 h-12 text-base bg-card"
+        className="h-11 pr-10 pl-10 text-sm"
       />
       {value && (
         <Button
+          type="button"
           variant="ghost"
           size="icon"
           onClick={() => onChange('')}
-          className="absolute left-2 top-1/2 -translate-y-1/2 h-8 w-8"
+          className="absolute left-1 top-1/2 -translate-y-1/2 h-8 w-8 hover:bg-muted"
         >
           <X className="w-4 h-4" />
         </Button>

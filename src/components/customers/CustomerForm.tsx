@@ -4,7 +4,6 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Separator } from '@/components/ui/separator';
 import { Customer, CustomerFormData, measurementFields } from '@/types/customer';
 import { Save, X, Ruler, Shirt } from 'lucide-react';
 
@@ -71,64 +70,62 @@ export function CustomerForm({ customer, onSubmit, onCancel, isLoading }: Custom
   );
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6 animate-fade-in">
+    <form onSubmit={handleSubmit} className="space-y-4 animate-fade-in">
       {/* Basic Info */}
       <Card className="elevated-card">
-        <CardHeader className="pb-4">
-          <CardTitle className="text-xl font-urdu flex items-center gap-2">
-            <div className="bg-primary/10 p-2 rounded-lg">
-              <Ruler className="w-5 h-5 text-primary" />
+        <CardHeader className="pb-3 pt-4 px-4">
+          <CardTitle className="text-base font-urdu flex items-center gap-2">
+            <div className="bg-primary/10 p-1.5 rounded-lg">
+              <Ruler className="w-4 h-4 text-primary" />
             </div>
             بنیادی معلومات
           </CardTitle>
         </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="name" className="text-base font-medium">
-                نام <span className="text-destructive">*</span>
-              </Label>
-              <Input
-                id="name"
-                value={formData.name}
-                onChange={(e) => handleChange('name', e.target.value)}
-                placeholder="گاہک کا نام"
-                required
-                className="text-lg h-12"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="phone" className="text-base font-medium">
-                فون نمبر
-              </Label>
-              <Input
-                id="phone"
-                value={formData.phone}
-                onChange={(e) => handleChange('phone', e.target.value)}
-                placeholder="0300-0000000"
-                className="text-lg h-12"
-                dir="ltr"
-              />
-            </div>
+        <CardContent className="px-4 pb-4 space-y-3">
+          <div className="space-y-1.5">
+            <Label htmlFor="name" className="text-sm font-medium">
+              نام <span className="text-destructive">*</span>
+            </Label>
+            <Input
+              id="name"
+              value={formData.name}
+              onChange={(e) => handleChange('name', e.target.value)}
+              placeholder="گاہک کا نام"
+              required
+              className="h-11 text-base"
+            />
+          </div>
+          <div className="space-y-1.5">
+            <Label htmlFor="phone" className="text-sm font-medium">
+              فون نمبر
+            </Label>
+            <Input
+              id="phone"
+              value={formData.phone}
+              onChange={(e) => handleChange('phone', e.target.value)}
+              placeholder="0300-0000000"
+              className="h-11 text-base"
+              dir="ltr"
+            />
           </div>
         </CardContent>
       </Card>
 
       {/* Qameez Measurements */}
       <Card className="elevated-card">
-        <CardHeader className="pb-4">
-          <CardTitle className="text-xl font-urdu flex items-center gap-2">
-            <div className="bg-accent/20 p-2 rounded-lg">
-              <Shirt className="w-5 h-5 text-accent" />
+        <CardHeader className="pb-3 pt-4 px-4">
+          <CardTitle className="text-base font-urdu flex items-center gap-2">
+            <div className="bg-accent/20 p-1.5 rounded-lg">
+              <Shirt className="w-4 h-4 text-accent" />
             </div>
             قمیص کے ناپ
           </CardTitle>
         </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+        <CardContent className="px-4 pb-4">
+          <div className="grid grid-cols-2 gap-2.5">
             {qameezFields.map((field) => (
-              <div key={field.key} className="measurement-field">
-                <Label htmlFor={field.key} className="text-sm font-medium text-muted-foreground block mb-2">
+              <div key={field.key} className="measurement-field p-2.5">
+                <Label htmlFor={field.key} className="text-[11px] font-medium text-muted-foreground block mb-1.5 leading-tight">
                   {field.label}
                 </Label>
                 <Input
@@ -144,7 +141,7 @@ export function CustomerForm({ customer, onSubmit, onCancel, isLoading }: Custom
                     )
                   }
                   placeholder={field.type === 'number' ? '0' : ''}
-                  className="border-0 bg-transparent p-0 h-auto text-lg font-medium focus-visible:ring-0"
+                  className="border-0 bg-transparent p-0 h-8 text-base font-medium focus-visible:ring-0"
                   dir={field.type === 'number' ? 'ltr' : 'rtl'}
                 />
               </div>
@@ -155,19 +152,19 @@ export function CustomerForm({ customer, onSubmit, onCancel, isLoading }: Custom
 
       {/* Shalwar Measurements */}
       <Card className="elevated-card">
-        <CardHeader className="pb-4">
-          <CardTitle className="text-xl font-urdu flex items-center gap-2">
-            <div className="bg-secondary/20 p-2 rounded-lg">
-              <Ruler className="w-5 h-5 text-secondary" />
+        <CardHeader className="pb-3 pt-4 px-4">
+          <CardTitle className="text-base font-urdu flex items-center gap-2">
+            <div className="bg-secondary/20 p-1.5 rounded-lg">
+              <Ruler className="w-4 h-4 text-secondary" />
             </div>
             شلوار کے ناپ
           </CardTitle>
         </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <CardContent className="px-4 pb-4">
+          <div className="grid grid-cols-2 gap-2.5">
             {shalwarFields.map((field) => (
-              <div key={field.key} className="measurement-field">
-                <Label htmlFor={field.key} className="text-sm font-medium text-muted-foreground block mb-2">
+              <div key={field.key} className="measurement-field p-2.5">
+                <Label htmlFor={field.key} className="text-[11px] font-medium text-muted-foreground block mb-1.5 leading-tight">
                   {field.label}
                 </Label>
                 <Input
@@ -183,7 +180,7 @@ export function CustomerForm({ customer, onSubmit, onCancel, isLoading }: Custom
                     )
                   }
                   placeholder={field.type === 'number' ? '0' : ''}
-                  className="border-0 bg-transparent p-0 h-auto text-lg font-medium focus-visible:ring-0"
+                  className="border-0 bg-transparent p-0 h-8 text-base font-medium focus-visible:ring-0"
                   dir={field.type === 'number' ? 'ltr' : 'rtl'}
                 />
               </div>
@@ -194,40 +191,40 @@ export function CustomerForm({ customer, onSubmit, onCancel, isLoading }: Custom
 
       {/* Notes */}
       <Card className="elevated-card">
-        <CardHeader className="pb-4">
-          <CardTitle className="text-xl font-urdu">نوٹس</CardTitle>
+        <CardHeader className="pb-3 pt-4 px-4">
+          <CardTitle className="text-base font-urdu">نوٹس</CardTitle>
         </CardHeader>
-        <CardContent>
+        <CardContent className="px-4 pb-4">
           <Textarea
             value={formData.notes}
             onChange={(e) => handleChange('notes', e.target.value)}
-            placeholder="کوئی خاص ہدایات یا نوٹس..."
-            className="min-h-[100px] text-base"
+            placeholder="کوئی خاص ہدایات..."
+            className="min-h-[80px] text-sm"
           />
         </CardContent>
       </Card>
 
-      <Separator />
-
-      {/* Actions */}
-      <div className="flex items-center gap-4 justify-end">
-        <Button
-          type="button"
-          variant="outline"
-          onClick={onCancel}
-          className="h-12 px-6"
-        >
-          <X className="w-5 h-5 ml-2" />
-          منسوخ
-        </Button>
-        <Button
-          type="submit"
-          disabled={isLoading || !formData.name.trim()}
-          className="h-12 px-8 bg-primary hover:bg-primary/90"
-        >
-          <Save className="w-5 h-5 ml-2" />
-          {isLoading ? 'محفوظ ہو رہا ہے...' : 'محفوظ کریں'}
-        </Button>
+      {/* Actions - Sticky at bottom */}
+      <div className="sticky bottom-0 bg-background pt-3 pb-2 -mx-3 px-3 border-t border-border">
+        <div className="flex items-center gap-3">
+          <Button
+            type="button"
+            variant="outline"
+            onClick={onCancel}
+            className="flex-1 h-12"
+          >
+            <X className="w-4 h-4 ml-1" />
+            منسوخ
+          </Button>
+          <Button
+            type="submit"
+            disabled={isLoading || !formData.name.trim()}
+            className="flex-1 h-12 bg-primary hover:bg-primary/90"
+          >
+            <Save className="w-4 h-4 ml-1" />
+            {isLoading ? 'محفوظ...' : 'محفوظ کریں'}
+          </Button>
+        </div>
       </div>
     </form>
   );

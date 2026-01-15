@@ -36,30 +36,30 @@ export default function CustomersPage() {
   if (error) {
     return (
       <EmptyState
-        icon={<Users className="w-12 h-12 text-destructive" />}
+        icon={<Users className="w-10 h-10 text-destructive" />}
         title="مسئلہ پیش آیا"
-        description="گاہکوں کی فہرست لوڈ کرنے میں مسئلہ ہوا۔ براہ کرم دوبارہ کوشش کریں۔"
+        description="براہ کرم دوبارہ کوشش کریں"
       />
     );
   }
 
   return (
-    <div className="space-y-6 animate-fade-in">
+    <div className="space-y-4 animate-fade-in">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-2xl md:text-3xl font-urdu font-bold text-foreground">
+      <div className="flex items-center justify-between gap-3">
+        <div className="min-w-0">
+          <h1 className="text-xl font-urdu font-bold text-foreground">
             گاہک
           </h1>
-          <p className="text-muted-foreground mt-1">
-            {customers?.length || 0} گاہک رجسٹرڈ ہیں
+          <p className="text-xs text-muted-foreground">
+            {customers?.length || 0} رجسٹرڈ
           </p>
         </div>
         <Button
           onClick={() => navigate('/customers/new')}
-          className="h-12 px-6 bg-primary hover:bg-primary/90"
+          className="h-10 px-4 bg-primary hover:bg-primary/90 shrink-0"
         >
-          <Plus className="w-5 h-5 ml-2" />
+          <Plus className="w-4 h-4 ml-1" />
           نیا گاہک
         </Button>
       </div>
@@ -68,14 +68,14 @@ export default function CustomersPage() {
       <CustomerSearch
         value={searchQuery}
         onChange={setSearchQuery}
-        placeholder="نام یا فون سے تلاش کریں..."
+        placeholder="نام یا فون سے تلاش..."
       />
 
       {/* Content */}
       {isLoading ? (
         <LoadingSpinner />
       ) : customers && customers.length > 0 ? (
-        <div className="grid gap-4">
+        <div className="space-y-3">
           {customers.map((customer) => (
             <CustomerCard
               key={customer.id}
@@ -87,13 +87,13 @@ export default function CustomersPage() {
         </div>
       ) : searchQuery ? (
         <EmptyState
-          icon={<Users className="w-12 h-12 text-muted-foreground" />}
-          title="کوئی گاہک نہیں ملا"
+          icon={<Users className="w-10 h-10 text-muted-foreground" />}
+          title="کوئی نہیں ملا"
           description={`"${searchQuery}" سے کوئی گاہک نہیں ملا`}
         />
       ) : (
         <EmptyState
-          icon={<Users className="w-12 h-12 text-muted-foreground" />}
+          icon={<Users className="w-10 h-10 text-muted-foreground" />}
           title="ابھی کوئی گاہک نہیں"
           description="اپنا پہلا گاہک شامل کریں"
           action={
@@ -101,8 +101,8 @@ export default function CustomersPage() {
               onClick={() => navigate('/customers/new')}
               className="bg-primary hover:bg-primary/90"
             >
-              <Plus className="w-5 h-5 ml-2" />
-              نیا گاہک شامل کریں
+              <Plus className="w-4 h-4 ml-1" />
+              نیا گاہک
             </Button>
           }
         />
@@ -114,7 +114,7 @@ export default function CustomersPage() {
         onOpenChange={(open) => !open && setCustomerToDelete(null)}
         onConfirm={confirmDelete}
         title="گاہک حذف کریں"
-        description={`کیا آپ واقعی "${customerToDelete?.name}" کو حذف کرنا چاہتے ہیں؟ اس کے تمام آرڈرز بھی حذف ہو جائیں گے۔`}
+        description={`کیا آپ واقعی "${customerToDelete?.name}" کو حذف کرنا چاہتے ہیں؟`}
       />
     </div>
   );

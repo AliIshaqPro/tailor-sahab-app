@@ -32,50 +32,54 @@ export default function BackupPage() {
   };
 
   return (
-    <div className="space-y-8 animate-fade-in">
+    <div className="space-y-5 animate-fade-in">
       {/* Header */}
-      <div className="text-center py-6">
-        <div className="inline-flex items-center justify-center p-4 bg-primary/10 rounded-2xl mb-4">
-          <Database className="w-12 h-12 text-primary" />
+      <div className="text-center py-4">
+        <div className="inline-flex items-center justify-center p-3 bg-primary/10 rounded-2xl mb-3">
+          <Database className="w-8 h-8 text-primary" />
         </div>
-        <h1 className="text-2xl md:text-3xl font-urdu font-bold text-foreground mb-2">
+        <h1 className="text-xl font-urdu font-bold text-foreground mb-1">
           ڈیٹا بیک اپ
         </h1>
-        <p className="text-muted-foreground max-w-md mx-auto">
-          اپنے تمام گاہکوں اور آرڈرز کا بیک اپ لیں تاکہ آپ کا ڈیٹا محفوظ رہے
+        <p className="text-xs text-muted-foreground max-w-xs mx-auto leading-relaxed">
+          اپنے تمام گاہکوں اور آرڈرز کا بیک اپ لیں
         </p>
       </div>
 
       {/* Backup Options */}
-      <div className="grid md:grid-cols-2 gap-6 max-w-3xl mx-auto">
+      <div className="space-y-4">
         {/* Download Backup */}
         <Card className="elevated-card">
-          <CardHeader>
-            <div className="bg-success/10 p-3 rounded-xl w-fit mb-2">
-              <Download className="w-8 h-8 text-success" />
+          <CardHeader className="pb-3 pt-4 px-4">
+            <div className="flex items-center gap-3">
+              <div className="bg-success/10 p-2.5 rounded-xl shrink-0">
+                <Download className="w-6 h-6 text-success" />
+              </div>
+              <div className="min-w-0">
+                <CardTitle className="text-base font-urdu">
+                  ڈاؤن لوڈ کریں
+                </CardTitle>
+                <CardDescription className="text-xs">
+                  بیک اپ فائل فون میں محفوظ کریں
+                </CardDescription>
+              </div>
             </div>
-            <CardTitle className="text-xl font-urdu">
-              ڈاؤن لوڈ کریں
-            </CardTitle>
-            <CardDescription className="text-base">
-              بیک اپ فائل اپنے فون یا کمپیوٹر میں محفوظ کریں
-            </CardDescription>
           </CardHeader>
-          <CardContent>
+          <CardContent className="px-4 pb-4">
             <Button
               onClick={handleDownload}
               disabled={isDownloading}
-              className="w-full h-14 text-lg bg-success hover:bg-success/90 text-success-foreground"
+              className="w-full h-12 text-sm bg-success hover:bg-success/90 text-success-foreground"
             >
               {isDownloading ? (
                 <>
-                  <Loader2 className="w-5 h-5 ml-2 animate-spin" />
+                  <Loader2 className="w-4 h-4 ml-2 animate-spin" />
                   ڈاؤن لوڈ ہو رہا ہے...
                 </>
               ) : (
                 <>
-                  <Download className="w-5 h-5 ml-2" />
-                  JSON فائل ڈاؤن لوڈ کریں
+                  <Download className="w-4 h-4 ml-2" />
+                  JSON فائل ڈاؤن لوڈ
                 </>
               )}
             </Button>
@@ -84,31 +88,35 @@ export default function BackupPage() {
 
         {/* Share via WhatsApp */}
         <Card className="elevated-card">
-          <CardHeader>
-            <div className="bg-[#25D366]/10 p-3 rounded-xl w-fit mb-2">
-              <MessageCircle className="w-8 h-8 text-[#25D366]" />
+          <CardHeader className="pb-3 pt-4 px-4">
+            <div className="flex items-center gap-3">
+              <div className="bg-[#25D366]/10 p-2.5 rounded-xl shrink-0">
+                <MessageCircle className="w-6 h-6 text-[#25D366]" />
+              </div>
+              <div className="min-w-0">
+                <CardTitle className="text-base font-urdu">
+                  واٹس ایپ
+                </CardTitle>
+                <CardDescription className="text-xs">
+                  بیک اپ واٹس ایپ پر بھیجیں
+                </CardDescription>
+              </div>
             </div>
-            <CardTitle className="text-xl font-urdu">
-              واٹس ایپ پر بھیجیں
-            </CardTitle>
-            <CardDescription className="text-base">
-              بیک اپ کی تفصیلات واٹس ایپ پر شیئر کریں
-            </CardDescription>
           </CardHeader>
-          <CardContent>
+          <CardContent className="px-4 pb-4">
             <Button
               onClick={handleWhatsAppShare}
               disabled={isSharing}
-              className="w-full h-14 text-lg bg-[#25D366] hover:bg-[#25D366]/90 text-white"
+              className="w-full h-12 text-sm bg-[#25D366] hover:bg-[#25D366]/90 text-white"
             >
               {isSharing ? (
                 <>
-                  <Loader2 className="w-5 h-5 ml-2 animate-spin" />
+                  <Loader2 className="w-4 h-4 ml-2 animate-spin" />
                   بھیج رہا ہے...
                 </>
               ) : (
                 <>
-                  <MessageCircle className="w-5 h-5 ml-2" />
+                  <MessageCircle className="w-4 h-4 ml-2" />
                   واٹس ایپ پر بھیجیں
                 </>
               )}
@@ -118,26 +126,20 @@ export default function BackupPage() {
       </div>
 
       {/* Info */}
-      <Card className="elevated-card max-w-3xl mx-auto">
-        <CardContent className="pt-6">
-          <div className="flex items-start gap-4">
-            <div className="bg-accent/20 p-2 rounded-lg">
-              <Shield className="w-6 h-6 text-accent" />
+      <Card className="elevated-card">
+        <CardContent className="p-4">
+          <div className="flex items-start gap-3">
+            <div className="bg-accent/20 p-2 rounded-lg shrink-0">
+              <Shield className="w-5 h-5 text-accent" />
             </div>
-            <div>
-              <h3 className="font-semibold text-foreground mb-2">
+            <div className="min-w-0">
+              <h3 className="font-semibold text-foreground text-sm mb-2">
                 بیک اپ کیوں ضروری ہے؟
               </h3>
-              <ul className="space-y-2 text-muted-foreground">
-                <li className="flex items-center gap-2">
-                  • آپ کا ڈیٹا محفوظ رہتا ہے
-                </li>
-                <li className="flex items-center gap-2">
-                  • کسی بھی مسئلے کی صورت میں ڈیٹا واپس لایا جا سکتا ہے
-                </li>
-                <li className="flex items-center gap-2">
-                  • ہفتے میں کم از کم ایک بار بیک اپ لینا چاہیے
-                </li>
+              <ul className="space-y-1.5 text-xs text-muted-foreground">
+                <li>• آپ کا ڈیٹا محفوظ رہتا ہے</li>
+                <li>• مسئلے کی صورت میں ڈیٹا واپس لائیں</li>
+                <li>• ہفتے میں کم از کم ایک بار بیک اپ لیں</li>
               </ul>
             </div>
           </div>
