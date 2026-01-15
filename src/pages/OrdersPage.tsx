@@ -70,7 +70,7 @@ export default function OrdersPage() {
     if (!orders || orders.length === 0) {
       return (
         <EmptyState
-          icon={<ClipboardList className="w-12 h-12 text-muted-foreground" />}
+          icon={<ClipboardList className="w-10 h-10 text-muted-foreground" />}
           title={activeTab === 'all' ? 'ابھی کوئی آرڈر نہیں' : `کوئی ${activeTab === 'pending' ? 'زیر التوا' : 'مکمل'} آرڈر نہیں`}
           description="نیا آرڈر بنائیں"
           action={
@@ -78,8 +78,8 @@ export default function OrdersPage() {
               onClick={() => navigate('/orders/new')}
               className="bg-primary hover:bg-primary/90"
             >
-              <Plus className="w-5 h-5 ml-2" />
-              نیا آرڈر بنائیں
+              <Plus className="w-4 h-4 ml-1" />
+              نیا آرڈر
             </Button>
           }
         />
@@ -87,7 +87,7 @@ export default function OrdersPage() {
     }
 
     return (
-      <div className="grid gap-4">
+      <div className="space-y-3">
         {orders.map((order) => (
           <OrderCard
             key={order.id}
@@ -101,50 +101,50 @@ export default function OrdersPage() {
   };
 
   return (
-    <div className="space-y-6 animate-fade-in">
+    <div className="space-y-4 animate-fade-in">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-2xl md:text-3xl font-urdu font-bold text-foreground">
+      <div className="flex items-center justify-between gap-3">
+        <div className="min-w-0">
+          <h1 className="text-xl font-urdu font-bold text-foreground">
             آرڈرز
           </h1>
-          <p className="text-muted-foreground mt-1">
+          <p className="text-xs text-muted-foreground">
             {allOrders?.length || 0} آرڈرز
           </p>
         </div>
         <Button
           onClick={() => navigate('/orders/new')}
-          className="h-12 px-6 bg-primary hover:bg-primary/90"
+          className="h-10 px-4 bg-primary hover:bg-primary/90 shrink-0"
         >
-          <Plus className="w-5 h-5 ml-2" />
+          <Plus className="w-4 h-4 ml-1" />
           نیا آرڈر
         </Button>
       </div>
 
       {/* Tabs */}
       <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
-        <TabsList className="grid w-full grid-cols-3 h-14">
-          <TabsTrigger value="all" className="text-base data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
-            <ClipboardList className="w-4 h-4 ml-2" />
+        <TabsList className="grid w-full grid-cols-3 h-11">
+          <TabsTrigger value="all" className="text-xs data-[state=active]:bg-primary data-[state=active]:text-primary-foreground px-2">
+            <ClipboardList className="w-3.5 h-3.5 ml-1" />
             سب ({allOrders?.length || 0})
           </TabsTrigger>
-          <TabsTrigger value="pending" className="text-base data-[state=active]:bg-pending data-[state=active]:text-pending-foreground">
-            <Clock className="w-4 h-4 ml-2" />
-            زیر التوا ({pendingOrders?.length || 0})
+          <TabsTrigger value="pending" className="text-xs data-[state=active]:bg-pending data-[state=active]:text-pending-foreground px-2">
+            <Clock className="w-3.5 h-3.5 ml-1" />
+            التوا ({pendingOrders?.length || 0})
           </TabsTrigger>
-          <TabsTrigger value="completed" className="text-base data-[state=active]:bg-success data-[state=active]:text-success-foreground">
-            <CheckCircle2 className="w-4 h-4 ml-2" />
+          <TabsTrigger value="completed" className="text-xs data-[state=active]:bg-success data-[state=active]:text-success-foreground px-2">
+            <CheckCircle2 className="w-3.5 h-3.5 ml-1" />
             مکمل ({completedOrders?.length || 0})
           </TabsTrigger>
         </TabsList>
 
-        <TabsContent value="all" className="mt-6">
+        <TabsContent value="all" className="mt-4">
           {renderOrdersList()}
         </TabsContent>
-        <TabsContent value="pending" className="mt-6">
+        <TabsContent value="pending" className="mt-4">
           {renderOrdersList()}
         </TabsContent>
-        <TabsContent value="completed" className="mt-6">
+        <TabsContent value="completed" className="mt-4">
           {renderOrdersList()}
         </TabsContent>
       </Tabs>

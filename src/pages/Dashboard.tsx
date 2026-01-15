@@ -42,7 +42,7 @@ export default function Dashboard() {
       onClick: () => navigate('/orders?status=pending'),
     },
     {
-      title: 'مکمل آرڈرز',
+      title: 'مکمل',
       value: completedOrders?.length || 0,
       icon: CheckCircle2,
       color: 'bg-success/10 text-success',
@@ -51,34 +51,34 @@ export default function Dashboard() {
   ];
 
   return (
-    <div className="space-y-8 animate-fade-in">
+    <div className="space-y-5 animate-fade-in">
       {/* Welcome Section */}
-      <div className="text-center py-6">
-        <h1 className="text-3xl md:text-4xl font-urdu font-bold text-foreground mb-2">
+      <div className="text-center py-4">
+        <h1 className="text-2xl font-urdu font-bold text-foreground mb-1">
           خوش آمدید
         </h1>
-        <p className="text-lg text-muted-foreground">
-          آج کا دن مبارک ہو! اپنے کاروبار کا جائزہ لیں۔
+        <p className="text-sm text-muted-foreground">
+          آج کا دن مبارک ہو!
         </p>
       </div>
 
       {/* Stats Grid */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
+      <div className="grid grid-cols-2 gap-3">
         {stats.map((stat) => (
           <Card
             key={stat.title}
-            className="elevated-card cursor-pointer hover:scale-[1.02] transition-transform duration-200"
+            className="elevated-card cursor-pointer active:scale-[0.98] transition-transform duration-200"
             onClick={stat.onClick}
           >
-            <CardContent className="pt-6">
-              <div className="flex flex-col items-center text-center">
-                <div className={`p-4 rounded-2xl mb-4 ${stat.color}`}>
-                  <stat.icon className="w-8 h-8" />
+            <CardContent className="p-4">
+              <div className="flex flex-col items-center text-center gap-2">
+                <div className={`p-3 rounded-xl ${stat.color}`}>
+                  <stat.icon className="w-6 h-6" />
                 </div>
-                <p className="text-3xl md:text-4xl font-bold text-foreground mb-1" dir="ltr">
+                <p className="text-2xl font-bold text-foreground" dir="ltr">
                   {stat.value}
                 </p>
-                <p className="text-sm text-muted-foreground font-medium">
+                <p className="text-xs text-muted-foreground font-medium leading-tight">
                   {stat.title}
                 </p>
               </div>
@@ -89,27 +89,27 @@ export default function Dashboard() {
 
       {/* Quick Actions */}
       <Card className="elevated-card">
-        <CardHeader>
-          <CardTitle className="text-xl font-urdu flex items-center gap-2">
-            <TrendingUp className="w-6 h-6 text-primary" />
+        <CardHeader className="pb-3 pt-4 px-4">
+          <CardTitle className="text-base font-urdu flex items-center gap-2">
+            <TrendingUp className="w-5 h-5 text-primary" />
             فوری کارروائی
           </CardTitle>
         </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <CardContent className="px-4 pb-4">
+          <div className="grid grid-cols-1 gap-3">
             <Button
               onClick={() => navigate('/customers/new')}
-              className="h-16 text-lg bg-primary hover:bg-primary/90"
+              className="h-14 text-base bg-primary hover:bg-primary/90"
             >
-              <Plus className="w-6 h-6 ml-2" />
+              <Plus className="w-5 h-5 ml-2" />
               نیا گاہک شامل کریں
             </Button>
             <Button
               onClick={() => navigate('/orders/new')}
               variant="outline"
-              className="h-16 text-lg border-2 border-primary text-primary hover:bg-primary/5"
+              className="h-14 text-base border-2 border-primary text-primary hover:bg-primary/5"
             >
-              <Plus className="w-6 h-6 ml-2" />
+              <Plus className="w-5 h-5 ml-2" />
               نیا آرڈر بنائیں
             </Button>
           </div>
@@ -119,31 +119,31 @@ export default function Dashboard() {
       {/* Recent Pending Orders */}
       {pendingOrders && pendingOrders.length > 0 && (
         <Card className="elevated-card">
-          <CardHeader>
-            <CardTitle className="text-xl font-urdu flex items-center gap-2">
-              <Clock className="w-6 h-6 text-pending" />
-              حالیہ زیر التوا آرڈرز
+          <CardHeader className="pb-3 pt-4 px-4">
+            <CardTitle className="text-base font-urdu flex items-center gap-2">
+              <Clock className="w-5 h-5 text-pending" />
+              زیر التوا آرڈرز
             </CardTitle>
           </CardHeader>
-          <CardContent>
-            <div className="space-y-3">
+          <CardContent className="px-4 pb-4">
+            <div className="space-y-2">
               {pendingOrders.slice(0, 5).map((order) => (
                 <div
                   key={order.id}
-                  className="flex items-center justify-between p-4 bg-muted/50 rounded-lg hover:bg-muted transition-colors cursor-pointer"
+                  className="flex items-center justify-between p-3 bg-muted/50 rounded-lg active:bg-muted transition-colors cursor-pointer gap-3"
                   onClick={() => navigate('/orders')}
                 >
-                  <div>
-                    <p className="font-medium text-foreground">
+                  <div className="min-w-0 flex-1">
+                    <p className="font-medium text-foreground text-sm truncate">
                       {order.customer?.name || 'نامعلوم گاہک'}
                     </p>
-                    <p className="text-sm text-muted-foreground" dir="ltr">
+                    <p className="text-xs text-muted-foreground" dir="ltr">
                       #{order.order_number}
                     </p>
                   </div>
                   {order.delivery_date && (
-                    <div className="text-sm text-muted-foreground">
-                      ڈلیوری: {new Date(order.delivery_date).toLocaleDateString('ur-PK')}
+                    <div className="text-xs text-muted-foreground whitespace-nowrap shrink-0">
+                      {new Date(order.delivery_date).toLocaleDateString('ur-PK')}
                     </div>
                   )}
                 </div>
