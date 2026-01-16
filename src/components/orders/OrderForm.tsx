@@ -2,7 +2,6 @@ import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { CustomerSearch } from '@/components/customers/CustomerSearch';
 import { CustomerForm } from '@/components/customers/CustomerForm';
@@ -23,8 +22,6 @@ export function OrderForm({ onSubmit, onCancel, isLoading }: OrderFormProps) {
   const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null);
   const [showNewCustomerForm, setShowNewCustomerForm] = useState(false);
   const [formData, setFormData] = useState<Omit<OrderFormData, 'customer_id'>>({
-    description: '',
-    fabric_details: '',
     price: undefined,
     advance_payment: undefined,
     delivery_date: '',
@@ -199,32 +196,6 @@ export function OrderForm({ onSubmit, onCancel, isLoading }: OrderFormProps) {
           <CardTitle className="text-base font-urdu">آرڈر کی تفصیلات</CardTitle>
         </CardHeader>
         <CardContent className="px-4 pb-4 space-y-3">
-          <div className="space-y-1.5">
-            <Label htmlFor="description" className="text-sm font-medium">
-              تفصیل
-            </Label>
-            <Textarea
-              id="description"
-              value={formData.description}
-              onChange={(e) => handleChange('description', e.target.value)}
-              placeholder="آرڈر کی تفصیل..."
-              className="min-h-[70px] text-sm"
-            />
-          </div>
-
-          <div className="space-y-1.5">
-            <Label htmlFor="fabric_details" className="text-sm font-medium">
-              کپڑے کی تفصیل
-            </Label>
-            <Input
-              id="fabric_details"
-              value={formData.fabric_details}
-              onChange={(e) => handleChange('fabric_details', e.target.value)}
-              placeholder="کپڑے کی قسم، رنگ وغیرہ"
-              className="h-11 text-sm"
-            />
-          </div>
-
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1.5">
               <Label htmlFor="price" className="text-sm font-medium">
