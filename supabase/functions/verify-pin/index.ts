@@ -87,7 +87,7 @@ serve(async (req) => {
     }
 
     if (action === 'verify') {
-      // Get stored PIN hash
+      // Get stored PIN
       const { data, error } = await supabaseAdmin
         .from('app_settings')
         .select('setting_value')
@@ -101,9 +101,31 @@ serve(async (req) => {
         )
       }
 
-      // Hash the provided PIN and compare
+      const storedValue = data.setting_value
       const hashedPin = await hashPin(pin)
-      const isValid = data.setting_value === hashedPin
+      
+      // Check if stored PIN is plaintext (legacy) or hashed
+      // Plaintext PINs are 4-6 digits, hashed PINs are 64 hex chars
+      const isPlaintext = /^\d{4,6}$/.test(storedValue)
+      
+      let isValid = false
+      if (isPlaintext) {
+        // Legacy plaintext comparison - then migrate to hashed
+        isValid = storedValue === pin
+        if (isValid) {
+          // Migrate to hashed PIN
+          await supabaseAdmin
+            .from('app_settings')
+            .update({ 
+              setting_value: hashedPin,
+              updated_at: new Date().toISOString()
+            })
+            .eq('setting_key', 'pin')
+        }
+      } else {
+        // Compare hashed values
+        isValid = storedValue === hashedPin
+      }
 
       if (!isValid) {
         return new Response(
