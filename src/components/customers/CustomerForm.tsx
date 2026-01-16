@@ -2,8 +2,8 @@ import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Customer, CustomerFormData, measurementFields } from '@/types/customer';
 import { Save, X, Ruler, Shirt } from 'lucide-react';
 
@@ -44,7 +44,6 @@ export function CustomerForm({ customer, onSubmit, onCancel, isLoading }: Custom
         paicha: customer.paicha ?? undefined,
         shalwar_pocket: customer.shalwar_pocket || '',
         shalwar_width: customer.shalwar_width ?? undefined,
-        notes: customer.notes || '',
       });
     }
   }, [customer]);
@@ -128,22 +127,37 @@ export function CustomerForm({ customer, onSubmit, onCancel, isLoading }: Custom
                 <Label htmlFor={field.key} className="text-[11px] font-medium text-muted-foreground block mb-1.5 leading-tight">
                   {field.label}
                 </Label>
-                <Input
-                  id={field.key}
-                  type={field.type}
-                  value={(formData as any)[field.key] || ''}
-                  onChange={(e) => 
-                    handleChange(
-                      field.key, 
-                      field.type === 'number' 
-                        ? parseFloat(e.target.value) || '' 
-                        : e.target.value
-                    )
-                  }
-                  placeholder={field.type === 'number' ? '0' : ''}
-                  className="border-0 bg-transparent p-0 h-8 text-base font-medium focus-visible:ring-0"
-                  dir={field.type === 'number' ? 'ltr' : 'rtl'}
-                />
+                {field.type === 'yesno' ? (
+                  <Select
+                    value={(formData as any)[field.key] || ''}
+                    onValueChange={(value) => handleChange(field.key, value)}
+                  >
+                    <SelectTrigger className="border-0 bg-transparent p-0 h-8 text-base font-medium focus:ring-0">
+                      <SelectValue placeholder="منتخب کریں" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="ہاں">ہاں</SelectItem>
+                      <SelectItem value="نہیں">نہیں</SelectItem>
+                    </SelectContent>
+                  </Select>
+                ) : (
+                  <Input
+                    id={field.key}
+                    type={field.type}
+                    value={(formData as any)[field.key] || ''}
+                    onChange={(e) => 
+                      handleChange(
+                        field.key, 
+                        field.type === 'number' 
+                          ? parseFloat(e.target.value) || '' 
+                          : e.target.value
+                      )
+                    }
+                    placeholder={field.type === 'number' ? '0' : ''}
+                    className="border-0 bg-transparent p-0 h-8 text-base font-medium focus-visible:ring-0"
+                    dir={field.type === 'number' ? 'ltr' : 'rtl'}
+                  />
+                )}
               </div>
             ))}
           </div>
@@ -167,42 +181,43 @@ export function CustomerForm({ customer, onSubmit, onCancel, isLoading }: Custom
                 <Label htmlFor={field.key} className="text-[11px] font-medium text-muted-foreground block mb-1.5 leading-tight">
                   {field.label}
                 </Label>
-                <Input
-                  id={field.key}
-                  type={field.type}
-                  value={(formData as any)[field.key] || ''}
-                  onChange={(e) => 
-                    handleChange(
-                      field.key, 
-                      field.type === 'number' 
-                        ? parseFloat(e.target.value) || '' 
-                        : e.target.value
-                    )
-                  }
-                  placeholder={field.type === 'number' ? '0' : ''}
-                  className="border-0 bg-transparent p-0 h-8 text-base font-medium focus-visible:ring-0"
-                  dir={field.type === 'number' ? 'ltr' : 'rtl'}
-                />
+                {field.type === 'yesno' ? (
+                  <Select
+                    value={(formData as any)[field.key] || ''}
+                    onValueChange={(value) => handleChange(field.key, value)}
+                  >
+                    <SelectTrigger className="border-0 bg-transparent p-0 h-8 text-base font-medium focus:ring-0">
+                      <SelectValue placeholder="منتخب کریں" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="ہاں">ہاں</SelectItem>
+                      <SelectItem value="نہیں">نہیں</SelectItem>
+                    </SelectContent>
+                  </Select>
+                ) : (
+                  <Input
+                    id={field.key}
+                    type={field.type}
+                    value={(formData as any)[field.key] || ''}
+                    onChange={(e) => 
+                      handleChange(
+                        field.key, 
+                        field.type === 'number' 
+                          ? parseFloat(e.target.value) || '' 
+                          : e.target.value
+                      )
+                    }
+                    placeholder={field.type === 'number' ? '0' : ''}
+                    className="border-0 bg-transparent p-0 h-8 text-base font-medium focus-visible:ring-0"
+                    dir={field.type === 'number' ? 'ltr' : 'rtl'}
+                  />
+                )}
               </div>
             ))}
           </div>
         </CardContent>
       </Card>
 
-      {/* Notes */}
-      <Card className="elevated-card">
-        <CardHeader className="pb-3 pt-4 px-4">
-          <CardTitle className="text-base font-urdu">نوٹس</CardTitle>
-        </CardHeader>
-        <CardContent className="px-4 pb-4">
-          <Textarea
-            value={formData.notes}
-            onChange={(e) => handleChange('notes', e.target.value)}
-            placeholder="کوئی خاص ہدایات..."
-            className="min-h-[80px] text-sm"
-          />
-        </CardContent>
-      </Card>
 
       {/* Actions - Sticky at bottom */}
       <div className="sticky bottom-0 bg-background pt-3 pb-2 -mx-3 px-3 border-t border-border">
