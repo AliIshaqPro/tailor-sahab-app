@@ -13,23 +13,23 @@ import { Plus, ClipboardList, Clock, CheckCircle2 } from 'lucide-react';
 export default function OrdersPage() {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
-  const initialStatus = searchParams.get('status') as 'pending' | 'completed' | null;
+  const initialStatus = searchParams.get('order_status') as 'pending' | 'completed' | null;
   const [activeTab, setActiveTab] = useState<string>(initialStatus || 'all');
   const [orderToDelete, setOrderToDelete] = useState<Order | null>(null);
-  
+
   const { data: allOrders, isLoading: allLoading } = useOrders();
   const { data: pendingOrders, isLoading: pendingLoading } = useOrders('pending');
   const { data: completedOrders, isLoading: completedLoading } = useOrders('completed');
-  
+
   const updateStatus = useUpdateOrderStatus();
   const deleteOrder = useDeleteOrder();
 
   const handleTabChange = (value: string) => {
     setActiveTab(value);
     if (value === 'all') {
-      searchParams.delete('status');
+      searchParams.delete('order_status');
     } else {
-      searchParams.set('status', value);
+      searchParams.set('order_status', value);
     }
     setSearchParams(searchParams);
   };

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { supabase } from '@/integrations/supabase/client';
+import { api } from '@/utils/api';
 import { toast } from 'sonner';
 
 const AUTH_KEY = 'tailor_master_auth';
@@ -20,7 +20,7 @@ export function useAuth() {
       // Check session expiry
       const expiryStr = localStorage.getItem(SESSION_EXPIRY_KEY);
       const authStatus = localStorage.getItem(AUTH_KEY);
-      
+
       if (expiryStr && authStatus === 'true') {
         const expiry = parseInt(expiryStr, 10);
         if (Date.now() > expiry) {
@@ -30,18 +30,11 @@ export function useAuth() {
         }
       }
 
-      // Check if PIN exists via edge function
-      const { data, error } = await supabase.functions.invoke('verify-pin', {
-        body: { action: 'check_exists' }
-      });
-
-      if (error) {
-        console.error('Error checking PIN:', error);
-      }
-
+      // Check if PIN exists via WordPress API
+      const data = await api.post('pin', { action: 'check_exists' });
       const pinExists = data?.exists ?? false;
       const sessionValid = localStorage.getItem(AUTH_KEY) === 'true';
-      
+
       setHasPin(pinExists);
       setIsAuthenticated(sessionValid && pinExists);
     } catch (error) {
@@ -52,35 +45,8 @@ export function useAuth() {
   };
 
   const setPin = async (pin: string) => {
-    try {
-      // Validate PIN format
-      if (!/^\d{4,6}$/.test(pin)) {
-        toast.error('پن کوڈ 4-6 ہندسوں کا ہونا چاہیے');
-        return false;
-      }
-
-      const { data, error } = await supabase.functions.invoke('verify-pin', {
-        body: { action: 'set', pin }
-      });
-
-      if (error || !data?.success) {
-        throw new Error('Failed to set PIN');
-      }
-
-      // Set session with expiry
-      const expiry = Date.now() + SESSION_DURATION;
-      localStorage.setItem(AUTH_KEY, 'true');
-      localStorage.setItem(SESSION_EXPIRY_KEY, expiry.toString());
-      
-      setHasPin(true);
-      setIsAuthenticated(true);
-      toast.success('پن کوڈ سیٹ ہو گیا');
-      return true;
-    } catch (error) {
-      console.error('Error setting PIN:', error);
-      toast.error('پن کوڈ سیٹ کرنے میں مسئلہ ہوا');
-      return false;
-    }
+    toast.error('پن کوڈ صرف ڈیٹا بیس سے تبدیل کیا جا سکتا ہے');
+    return false;
   };
 
   const verifyPin = async (pin: string) => {
@@ -91,20 +57,14 @@ export function useAuth() {
         return false;
       }
 
-      const { data, error } = await supabase.functions.invoke('verify-pin', {
-        body: { action: 'verify', pin }
-      });
-
-      if (error) {
-        throw error;
-      }
+      const data = await api.post('pin', { action: 'verify', pin });
 
       if (data?.success) {
         // Set session with expiry
         const expiry = Date.now() + SESSION_DURATION;
         localStorage.setItem(AUTH_KEY, 'true');
         localStorage.setItem(SESSION_EXPIRY_KEY, expiry.toString());
-        
+
         setIsAuthenticated(true);
         toast.success('خوش آمدید!');
         return true;

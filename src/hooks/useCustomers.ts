@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
+import { api } from '@/utils/api';
 import { Customer, CustomerFormData } from '@/types/customer';
 import { toast } from 'sonner';
 
@@ -7,19 +7,11 @@ export function useCustomers(searchQuery: string = '') {
   return useQuery({
     queryKey: ['customers', searchQuery],
     queryFn: async (): Promise<Customer[]> => {
-      let query = supabase
-        .from('customers')
-        .select('*')
-        .order('created_at', { ascending: false });
-
+      const params: Record<string, string> = {};
       if (searchQuery.trim()) {
-        query = query.or(`name.ilike.%${searchQuery}%,phone.ilike.%${searchQuery}%`);
+        params.search = searchQuery;
       }
-
-      const { data, error } = await query;
-
-      if (error) throw error;
-      return data as Customer[];
+      return api.get('customers', params);
     },
     staleTime: 1000 * 60,
   });
@@ -29,14 +21,12 @@ export function useCustomer(id: string) {
   return useQuery({
     queryKey: ['customer', id],
     queryFn: async (): Promise<Customer | null> => {
-      const { data, error } = await supabase
-        .from('customers')
-        .select('*')
-        .eq('id', id)
-        .maybeSingle();
-
-      if (error) throw error;
-      return data as Customer | null;
+      try {
+        return await api.get(`customers/${id}`);
+      } catch (error) {
+        if (error instanceof Error && error.message.includes('404')) return null;
+        throw error;
+      }
     },
     enabled: !!id,
   });
@@ -47,14 +37,8 @@ export function useCreateCustomer() {
 
   return useMutation({
     mutationFn: async (data: CustomerFormData): Promise<Customer> => {
-      const { data: customer, error } = await supabase
-        .from('customers')
-        .insert(data)
-        .select()
-        .single();
-
-      if (error) throw error;
-      return customer as Customer;
+      const response = await api.post('customers', data);
+      return { ...data, id: response.id } as Customer;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['customers'] });
@@ -71,16 +55,8 @@ export function useUpdateCustomer() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({ id, data }: { id: string; data: Partial<CustomerFormData> }): Promise<Customer> => {
-      const { data: customer, error } = await supabase
-        .from('customers')
-        .update(data)
-        .eq('id', id)
-        .select()
-        .single();
-
-      if (error) throw error;
-      return customer as Customer;
+    mutationFn: async ({ id, data }: { id: string; data: Partial<CustomerFormData> }): Promise<void> => {
+      await api.put(`customers/${id}`, data);
     },
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ['customers'] });
@@ -99,12 +75,7 @@ export function useDeleteCustomer() {
 
   return useMutation({
     mutationFn: async (id: string): Promise<void> => {
-      const { error } = await supabase
-        .from('customers')
-        .delete()
-        .eq('id', id);
-
-      if (error) throw error;
+      await api.delete(`customers/${id}`);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['customers'] });

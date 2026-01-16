@@ -1,4 +1,4 @@
-import { supabase } from '@/integrations/supabase/client';
+import { api } from '@/utils/api';
 import { toast } from 'sonner';
 import { z } from 'zod';
 
@@ -71,7 +71,7 @@ export function useRestore() {
       }
 
       const text = await file.text();
-      
+
       // Parse JSON safely
       let parsedData: unknown;
       try {
@@ -83,7 +83,7 @@ export function useRestore() {
 
       // Validate backup structure with Zod
       const validationResult = BackupSchema.safeParse(parsedData);
-      
+
       if (!validationResult.success) {
         console.error('Validation errors:', validationResult.error.errors);
         toast.error('بیک اپ ڈیٹا غلط ہے');
@@ -95,26 +95,22 @@ export function useRestore() {
       // Validate that order customer_ids reference valid customers
       const customerIds = new Set(backupData.customers.map(c => c.id));
       const invalidOrders = backupData.orders.filter(o => !customerIds.has(o.customer_id));
-      
+
       if (invalidOrders.length > 0) {
         toast.error('کچھ آرڈرز کے گاہک نہیں ملے');
         return false;
       }
 
-      // Delete existing data first
-      const { error: deleteOrdersError } = await supabase
-        .from('orders')
-        .delete()
-        .neq('id', '00000000-0000-0000-0000-000000000000'); // Delete all
+      // Delete existing data first (WordPress API doesn't have bulk delete all)
+      const existingOrders = await api.get('orders');
+      for (const order of existingOrders) {
+        await api.delete(`orders/${order.id}`);
+      }
 
-      if (deleteOrdersError) throw deleteOrdersError;
-
-      const { error: deleteCustomersError } = await supabase
-        .from('customers')
-        .delete()
-        .neq('id', '00000000-0000-0000-0000-000000000000'); // Delete all
-
-      if (deleteCustomersError) throw deleteCustomersError;
+      const existingCustomers = await api.get('customers');
+      for (const customer of existingCustomers) {
+        await api.delete(`customers/${customer.id}`);
+      }
 
       // Prepare customers data (sanitize and ensure proper format)
       const sanitizedCustomers = backupData.customers.map(customer => ({
@@ -146,12 +142,8 @@ export function useRestore() {
       }));
 
       // Restore customers
-      if (sanitizedCustomers.length > 0) {
-        const { error: customersError } = await supabase
-          .from('customers')
-          .insert(sanitizedCustomers);
-
-        if (customersError) throw customersError;
+      for (const customer of sanitizedCustomers) {
+        await api.post('customers', customer);
       }
 
       // Prepare orders data (sanitize and ensure proper format)
@@ -159,7 +151,7 @@ export function useRestore() {
         id: order.id,
         customer_id: order.customer_id,
         order_number: order.order_number.trim().substring(0, 50),
-        status: order.status || 'pending',
+        order_status: order.status || 'pending', // Key changed to order_status
         price: order.price ?? null,
         advance_payment: order.advance_payment ?? null,
         delivery_date: order.delivery_date || null,
@@ -170,12 +162,8 @@ export function useRestore() {
       }));
 
       // Restore orders
-      if (sanitizedOrders.length > 0) {
-        const { error: ordersError } = await supabase
-          .from('orders')
-          .insert(sanitizedOrders);
-
-        if (ordersError) throw ordersError;
+      for (const order of sanitizedOrders) {
+        await api.post('orders', order);
       }
 
       toast.success(`ڈیٹا واپس آ گیا - ${backupData.customers.length} گاہک، ${backupData.orders.length} آرڈرز`);

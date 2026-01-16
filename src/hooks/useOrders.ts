@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
+import { api } from '@/utils/api';
 import { Order, OrderFormData } from '@/types/order';
 import { toast } from 'sonner';
 
@@ -7,22 +7,11 @@ export function useOrders(status?: 'pending' | 'completed') {
   return useQuery({
     queryKey: ['orders', status],
     queryFn: async (): Promise<Order[]> => {
-      let query = supabase
-        .from('orders')
-        .select(`
-          *,
-          customer:customers(id, name, phone)
-        `)
-        .order('created_at', { ascending: false });
-
+      const params: Record<string, string> = {};
       if (status) {
-        query = query.eq('status', status);
+        params.order_status = status; // Changed from status to order_status
       }
-
-      const { data, error } = await query;
-
-      if (error) throw error;
-      return data as Order[];
+      return api.get('orders', params);
     },
     staleTime: 1000 * 60,
   });
@@ -32,17 +21,12 @@ export function useOrder(id: string) {
   return useQuery({
     queryKey: ['order', id],
     queryFn: async (): Promise<Order | null> => {
-      const { data, error } = await supabase
-        .from('orders')
-        .select(`
-          *,
-          customer:customers(id, name, phone)
-        `)
-        .eq('id', id)
-        .maybeSingle();
-
-      if (error) throw error;
-      return data as Order | null;
+      try {
+        return await api.get(`orders/${id}`);
+      } catch (error) {
+        if (error instanceof Error && error.message.includes('404')) return null;
+        throw error;
+      }
     },
     enabled: !!id,
   });
@@ -51,15 +35,12 @@ export function useOrder(id: string) {
 async function generateOrderNumber(): Promise<string> {
   const today = new Date();
   const datePrefix = `${today.getFullYear()}${String(today.getMonth() + 1).padStart(2, '0')}${String(today.getDate()).padStart(2, '0')}`;
-  
-  const { count, error } = await supabase
-    .from('orders')
-    .select('*', { count: 'exact', head: true })
-    .like('order_number', `${datePrefix}%`);
 
-  if (error) throw error;
+  // Fetch orders for today to count them
+  const orders = await api.get('orders');
+  const todaysOrders = orders.filter((o: Order) => o.order_number.startsWith(datePrefix));
 
-  const orderNum = (count || 0) + 1;
+  const orderNum = todaysOrders.length + 1;
   return `${datePrefix}-${String(orderNum).padStart(3, '0')}`;
 }
 
@@ -69,22 +50,17 @@ export function useCreateOrder() {
   return useMutation({
     mutationFn: async (data: OrderFormData): Promise<Order> => {
       const orderNumber = await generateOrderNumber();
-      
-      const { data: order, error } = await supabase
-        .from('orders')
-        .insert({
-          ...data,
-          order_number: orderNumber,
-          status: 'pending',
-        })
-        .select(`
-          *,
-          customer:customers(id, name, phone)
-        `)
-        .single();
 
-      if (error) throw error;
-      return order as Order;
+      const response = await api.post('orders', {
+        ...data,
+        order_number: orderNumber,
+        order_status: 'pending', // Changed from status
+      });
+
+      // Fetch the full order to get nested customer data if needed, 
+      // or assume the response/local data is enough
+      const newOrder = await api.get(`orders/${response.id}`);
+      return newOrder as Order;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['orders'] });
@@ -101,19 +77,8 @@ export function useUpdateOrderStatus() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({ id, status }: { id: string; status: 'pending' | 'completed' }): Promise<Order> => {
-      const { data: order, error } = await supabase
-        .from('orders')
-        .update({ status })
-        .eq('id', id)
-        .select(`
-          *,
-          customer:customers(id, name, phone)
-        `)
-        .single();
-
-      if (error) throw error;
-      return order as Order;
+    mutationFn: async ({ id, status }: { id: string; status: 'pending' | 'completed' }): Promise<void> => {
+      await api.put(`orders/${id}`, { order_status: status }); // Changed from status
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['orders'] });
@@ -132,12 +97,7 @@ export function useDeleteOrder() {
 
   return useMutation({
     mutationFn: async (id: string): Promise<void> => {
-      const { error } = await supabase
-        .from('orders')
-        .delete()
-        .eq('id', id);
-
-      if (error) throw error;
+      await api.delete(`orders/${id}`);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['orders'] });

@@ -1,4 +1,0 @@
-project_id = "yidmkyvzvabdtqgsfndg"
-
-[functions.verify-pin]
-verify_jwt = false
