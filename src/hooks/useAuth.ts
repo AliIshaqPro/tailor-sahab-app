@@ -3,6 +3,8 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
 const AUTH_KEY = 'tailor_master_auth';
+const SESSION_EXPIRY_KEY = 'tailor_master_session_expiry';
+const SESSION_DURATION = 24 * 60 * 60 * 1000; // 24 hours
 
 export function useAuth() {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
@@ -15,22 +17,33 @@ export function useAuth() {
 
   const checkAuthStatus = async () => {
     try {
-      // Check if already authenticated in this session
+      // Check session expiry
+      const expiryStr = localStorage.getItem(SESSION_EXPIRY_KEY);
       const authStatus = localStorage.getItem(AUTH_KEY);
       
-      // Check if PIN exists in database
-      const { data, error } = await supabase
-        .from('app_settings')
-        .select('setting_value')
-        .eq('setting_key', 'pin')
-        .single();
+      if (expiryStr && authStatus === 'true') {
+        const expiry = parseInt(expiryStr, 10);
+        if (Date.now() > expiry) {
+          // Session expired
+          localStorage.removeItem(AUTH_KEY);
+          localStorage.removeItem(SESSION_EXPIRY_KEY);
+        }
+      }
 
-      if (error && error.code !== 'PGRST116') {
+      // Check if PIN exists via edge function
+      const { data, error } = await supabase.functions.invoke('verify-pin', {
+        body: { action: 'check_exists' }
+      });
+
+      if (error) {
         console.error('Error checking PIN:', error);
       }
 
-      setHasPin(!!data);
-      setIsAuthenticated(authStatus === 'true' && !!data);
+      const pinExists = data?.exists ?? false;
+      const sessionValid = localStorage.getItem(AUTH_KEY) === 'true';
+      
+      setHasPin(pinExists);
+      setIsAuthenticated(sessionValid && pinExists);
     } catch (error) {
       console.error('Auth check error:', error);
     } finally {
@@ -40,19 +53,25 @@ export function useAuth() {
 
   const setPin = async (pin: string) => {
     try {
-      const { error } = await supabase
-        .from('app_settings')
-        .upsert({
-          setting_key: 'pin',
-          setting_value: pin,
-          updated_at: new Date().toISOString(),
-        }, {
-          onConflict: 'setting_key'
-        });
+      // Validate PIN format
+      if (!/^\d{4,6}$/.test(pin)) {
+        toast.error('پن کوڈ 4-6 ہندسوں کا ہونا چاہیے');
+        return false;
+      }
 
-      if (error) throw error;
+      const { data, error } = await supabase.functions.invoke('verify-pin', {
+        body: { action: 'set', pin }
+      });
 
+      if (error || !data?.success) {
+        throw new Error('Failed to set PIN');
+      }
+
+      // Set session with expiry
+      const expiry = Date.now() + SESSION_DURATION;
       localStorage.setItem(AUTH_KEY, 'true');
+      localStorage.setItem(SESSION_EXPIRY_KEY, expiry.toString());
+      
       setHasPin(true);
       setIsAuthenticated(true);
       toast.success('پن کوڈ سیٹ ہو گیا');
@@ -66,16 +85,26 @@ export function useAuth() {
 
   const verifyPin = async (pin: string) => {
     try {
-      const { data, error } = await supabase
-        .from('app_settings')
-        .select('setting_value')
-        .eq('setting_key', 'pin')
-        .single();
+      // Validate PIN format
+      if (!/^\d{4,6}$/.test(pin)) {
+        toast.error('غلط پن کوڈ');
+        return false;
+      }
 
-      if (error) throw error;
+      const { data, error } = await supabase.functions.invoke('verify-pin', {
+        body: { action: 'verify', pin }
+      });
 
-      if (data.setting_value === pin) {
+      if (error) {
+        throw error;
+      }
+
+      if (data?.success) {
+        // Set session with expiry
+        const expiry = Date.now() + SESSION_DURATION;
         localStorage.setItem(AUTH_KEY, 'true');
+        localStorage.setItem(SESSION_EXPIRY_KEY, expiry.toString());
+        
         setIsAuthenticated(true);
         toast.success('خوش آمدید!');
         return true;
@@ -92,6 +121,7 @@ export function useAuth() {
 
   const logout = () => {
     localStorage.removeItem(AUTH_KEY);
+    localStorage.removeItem(SESSION_EXPIRY_KEY);
     setIsAuthenticated(false);
     toast.success('لاگ آؤٹ ہو گیا');
   };
