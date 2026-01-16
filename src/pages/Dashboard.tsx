@@ -1,6 +1,6 @@
 import { useCustomers } from '@/hooks/useCustomers';
 import { useOrders } from '@/hooks/useOrders';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
 import { 
@@ -8,8 +8,7 @@ import {
   ClipboardList, 
   Clock, 
   CheckCircle2, 
-  Plus,
-  TrendingUp
+  Plus
 } from 'lucide-react';
 
 export default function Dashboard() {
@@ -52,16 +51,6 @@ export default function Dashboard() {
 
   return (
     <div className="space-y-5 animate-fade-in">
-      {/* Welcome Section */}
-      <div className="text-center py-4">
-        <h1 className="text-2xl font-urdu font-bold text-foreground mb-1">
-          خوش آمدید
-        </h1>
-        <p className="text-sm text-muted-foreground">
-          آج کا دن مبارک ہو!
-        </p>
-      </div>
-
       {/* Stats Grid */}
       <div className="grid grid-cols-2 gap-3">
         {stats.map((stat) => (
@@ -88,44 +77,32 @@ export default function Dashboard() {
       </div>
 
       {/* Quick Actions */}
-      <Card className="elevated-card">
-        <CardHeader className="pb-3 pt-4 px-4">
-          <CardTitle className="text-base font-urdu flex items-center gap-2">
-            <TrendingUp className="w-5 h-5 text-primary" />
-            فوری کارروائی
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="px-4 pb-4">
-          <div className="grid grid-cols-1 gap-3">
-            <Button
-              onClick={() => navigate('/customers/new')}
-              className="h-14 text-base bg-primary hover:bg-primary/90"
-            >
-              <Plus className="w-5 h-5 ml-2" />
-              نیا گاہک شامل کریں
-            </Button>
-            <Button
-              onClick={() => navigate('/orders/new')}
-              variant="outline"
-              className="h-14 text-base border-2 border-primary text-primary hover:bg-primary/5"
-            >
-              <Plus className="w-5 h-5 ml-2" />
-              نیا آرڈر بنائیں
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
+      <div className="grid grid-cols-1 gap-3">
+        <Button
+          onClick={() => navigate('/customers/new')}
+          className="h-14 text-base bg-primary hover:bg-primary/90"
+        >
+          <Plus className="w-5 h-5 ml-2" />
+          نیا گاہک شامل کریں
+        </Button>
+        <Button
+          onClick={() => navigate('/orders/new')}
+          variant="outline"
+          className="h-14 text-base border-2 border-primary text-primary hover:bg-primary/5"
+        >
+          <Plus className="w-5 h-5 ml-2" />
+          نیا آرڈر بنائیں
+        </Button>
+      </div>
 
       {/* Recent Pending Orders */}
       {pendingOrders && pendingOrders.length > 0 && (
         <Card className="elevated-card">
-          <CardHeader className="pb-3 pt-4 px-4">
-            <CardTitle className="text-base font-urdu flex items-center gap-2">
+          <CardContent className="p-4">
+            <div className="flex items-center gap-2 mb-3">
               <Clock className="w-5 h-5 text-pending" />
-              زیر التوا آرڈرز
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="px-4 pb-4">
+              <h2 className="text-sm font-semibold text-foreground">زیر التوا آرڈرز</h2>
+            </div>
             <div className="space-y-2">
               {pendingOrders.slice(0, 5).map((order) => (
                 <div
