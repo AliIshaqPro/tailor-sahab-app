@@ -54,16 +54,14 @@ export function useCreateOrder() {
       const response = await api.post('orders', {
         ...data,
         order_number: orderNumber,
-        order_status: 'pending', // Changed from status
+        order_status: 'pending',
       });
 
-      // Fetch the full order to get nested customer data if needed, 
-      // or assume the response/local data is enough
-      const newOrder = await api.get(`orders/${response.id}`);
-      return newOrder as Order;
+      // Return the response directly - it should contain the created order
+      return response as Order;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['orders'] });
+      queryClient.invalidateQueries({ queryKey: ['orders'], refetchType: 'all' });
       toast.success('آرڈر کامیابی سے بن گیا');
     },
     onError: (error) => {
@@ -77,13 +75,19 @@ export function useUpdateOrderStatus() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({ id, status }: { id: string; status: 'pending' | 'completed' }): Promise<void> => {
-      await api.put(`orders/${id}`, { order_status: status }); // Changed from status
+    mutationFn: async ({ id, status, price }: { id: string; status: 'pending' | 'completed'; price?: number }): Promise<void> => {
+      const updateData: Record<string, any> = { order_status: status };
+      
+      // When marking as completed, set advance_payment = price (full payment received)
+      if (status === 'completed' && price !== undefined) {
+        updateData.advance_payment = price;
+      }
+      
+      await api.put(`orders/${id}`, updateData);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['orders'] });
-      const message = 'آرڈر کی حیثیت تبدیل ہو گئی';
-      toast.success(message);
+      queryClient.invalidateQueries({ queryKey: ['orders'], refetchType: 'all' });
+      toast.success('آرڈر کی حیثیت تبدیل ہو گئی');
     },
     onError: (error) => {
       console.error('Error updating order status:', error);
@@ -100,7 +104,7 @@ export function useDeleteOrder() {
       await api.delete(`orders/${id}`);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['orders'] });
+      queryClient.invalidateQueries({ queryKey: ['orders'], refetchType: 'all' });
       toast.success('آرڈر کامیابی سے حذف ہو گیا');
     },
     onError: (error) => {

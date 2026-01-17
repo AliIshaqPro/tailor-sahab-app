@@ -105,3 +105,49 @@ add_action('rest_api_init', function () {
     $pin_api = new Tailor_Sahab_PIN_API();
     $pin_api->register_routes();
 });
+
+
+
+// Add this at the top of your plugin file, after the plugin header
+add_action('rest_api_init', function() {
+    remove_filter('rest_pre_serve_request', 'rest_send_cors_headers');
+    add_filter('rest_pre_serve_request', function($value) {
+        $origin = get_http_origin();
+        
+        // Allow Lovable domains and your production domain
+        $allowed_origins = [
+            'https://tailor-sahab-app.lovable.app',
+            'https://id-preview--1fc339ae-318d-47b5-b0da-59f7c844a176.lovable.app',
+        ];
+        
+        // Also allow any lovable.app subdomain
+        if (preg_match('/^https:\/\/.*\.lovable\.app$/', $origin) || 
+            preg_match('/^https:\/\/.*\.lovableproject\.com$/', $origin)) {
+            header("Access-Control-Allow-Origin: " . $origin);
+        } elseif (in_array($origin, $allowed_origins)) {
+            header("Access-Control-Allow-Origin: " . $origin);
+        }
+        
+        header('Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS');
+        header('Access-Control-Allow-Credentials: true');
+        header('Access-Control-Allow-Headers: Authorization, Content-Type, X-Requested-With');
+        
+        return $value;
+    });
+}, 15);
+
+// Handle preflight OPTIONS requests
+add_action('init', function() {
+    if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
+        $origin = get_http_origin();
+        if (preg_match('/^https:\/\/.*\.lovable\.app$/', $origin) || 
+            preg_match('/^https:\/\/.*\.lovableproject\.com$/', $origin)) {
+            header("Access-Control-Allow-Origin: " . $origin);
+            header('Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS');
+            header('Access-Control-Allow-Credentials: true');
+            header('Access-Control-Allow-Headers: Authorization, Content-Type, X-Requested-With');
+            exit(0);
+        }
+    }
+});
+

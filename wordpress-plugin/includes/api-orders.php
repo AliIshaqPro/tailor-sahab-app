@@ -44,7 +44,7 @@ class Tailor_Sahab_Orders_API {
         global $wpdb;
         $table_orders = $wpdb->prefix . 'tailor_orders';
         $table_customers = $wpdb->prefix . 'tailor_customers';
-        $status = $request->get_param('order_status');
+        $status = $request->get_param('order_status'); // Frontend uses 'order_status'
 
         $query = "SELECT o.*, c.name as customer_name, c.phone as customer_phone 
                   FROM $table_orders o 
@@ -59,8 +59,8 @@ class Tailor_Sahab_Orders_API {
         $results = $wpdb->get_results($query, ARRAY_A);
         
         foreach ($results as &$row) {
-            // Map status to order_status for frontend
-            $row['status'] = $row['status']; // Keep original for some uses
+            // Map database 'status' to frontend 'order_status'
+            $row['order_status'] = $row['status'];
             
             // Create nested customer object
             $row['customer'] = array(
@@ -73,7 +73,7 @@ class Tailor_Sahab_Orders_API {
             unset($row['customer_name']);
             unset($row['customer_phone']);
 
-            // Convert decimals
+            // Convert decimals to proper types
             $row['price'] = $row['price'] !== null ? (float)$row['price'] : null;
             $row['advance_payment'] = $row['advance_payment'] !== null ? (float)$row['advance_payment'] : null;
         }
@@ -99,6 +99,9 @@ class Tailor_Sahab_Orders_API {
             return new WP_Error('not_found', 'Order not found', array('status' => 404));
         }
 
+        // Map database 'status' to frontend 'order_status'
+        $order['order_status'] = $order['status'];
+
         // Create nested customer object
         $order['customer'] = array(
             'id' => $order['customer_id'],
@@ -118,10 +121,32 @@ class Tailor_Sahab_Orders_API {
     public function create_order($request) {
         global $wpdb;
         $table_orders = $wpdb->prefix . 'tailor_orders';
+        $table_customers = $wpdb->prefix . 'tailor_customers';
         $params = $request->get_json_params();
 
+        // Validate required fields
         if (empty($params['customer_id']) || empty($params['order_number'])) {
             return new WP_Error('missing_fields', 'Customer ID and Order Number are required', array('status' => 400));
+        }
+
+        // Validate customer exists
+        $customer_exists = $wpdb->get_var($wpdb->prepare(
+            "SELECT COUNT(*) FROM $table_customers WHERE id = %s",
+            sanitize_text_field($params['customer_id'])
+        ));
+
+        if (!$customer_exists) {
+            return new WP_Error('invalid_customer', 'Customer does not exist', array('status' => 400));
+        }
+
+        // Check for duplicate order number
+        $order_exists = $wpdb->get_var($wpdb->prepare(
+            "SELECT COUNT(*) FROM $table_orders WHERE order_number = %s",
+            sanitize_text_field($params['order_number'])
+        ));
+
+        if ($order_exists) {
+            return new WP_Error('duplicate_order', 'Order number already exists', array('status' => 409));
         }
 
         $id = isset($params['id']) ? sanitize_text_field($params['id']) : wp_generate_uuid4();
@@ -132,7 +157,7 @@ class Tailor_Sahab_Orders_API {
             'order_number' => sanitize_text_field($params['order_number']),
             'description' => isset($params['description']) ? sanitize_textarea_field($params['description']) : null,
             'fabric_details' => isset($params['fabric_details']) ? sanitize_textarea_field($params['fabric_details']) : null,
-            'price' => isset($params['price']) ? (float)$params['price'] : 0,
+            'price' => isset($params['price']) ? (float)$params['price'] : null,
             'advance_payment' => isset($params['advance_payment']) ? (float)$params['advance_payment'] : 0,
             'status' => isset($params['order_status']) ? sanitize_text_field($params['order_status']) : 'pending',
             'delivery_date' => isset($params['delivery_date']) ? sanitize_text_field($params['delivery_date']) : null,
@@ -141,48 +166,103 @@ class Tailor_Sahab_Orders_API {
         $inserted = $wpdb->insert($table_orders, $data);
 
         if ($inserted === false) {
-            return new WP_Error('db_error', 'Could not create order', array('status' => 500));
+            return new WP_Error('db_error', 'Could not create order: ' . $wpdb->last_error, array('status' => 500));
         }
 
-        return new WP_REST_Response(array('id' => $id), 201);
+        // Return the created order with proper structure
+        $created_order = $this->get_order(new WP_REST_Request('GET', '', array('id' => $id)));
+        return new WP_REST_Response($created_order->data, 201);
     }
 
     public function update_order($request) {
         global $wpdb;
         $table_orders = $wpdb->prefix . 'tailor_orders';
+        $table_customers = $wpdb->prefix . 'tailor_customers';
         $id = $request['id'];
         $params = $request->get_json_params();
 
+        // Check if order exists
+        $exists = $wpdb->get_var($wpdb->prepare(
+            "SELECT COUNT(*) FROM $table_orders WHERE id = %s",
+            $id
+        ));
+
+        if (!$exists) {
+            return new WP_Error('not_found', 'Order not found', array('status' => 404));
+        }
+
         $data = array();
         
-        // Frontend uses order_status key
+        // Handle status (frontend uses 'order_status')
         if (isset($params['order_status'])) {
             $data['status'] = sanitize_text_field($params['order_status']);
         }
         
-        // Add other fields if present (for potential future full updates)
-        $fields = array('description', 'fabric_details', 'price', 'advance_payment', 'delivery_date');
-        foreach ($fields as $field) {
-            if (isset($params[$field])) {
-                if ($field === 'price' || $field === 'advance_payment') {
-                    $data[$field] = (float)$params[$field];
-                } else {
-                    $data[$field] = sanitize_text_field($params[$field]);
-                }
+        // Handle customer_id change (validate if provided)
+        if (isset($params['customer_id'])) {
+            $customer_exists = $wpdb->get_var($wpdb->prepare(
+                "SELECT COUNT(*) FROM $table_customers WHERE id = %s",
+                sanitize_text_field($params['customer_id'])
+            ));
+            
+            if (!$customer_exists) {
+                return new WP_Error('invalid_customer', 'Customer does not exist', array('status' => 400));
             }
+            
+            $data['customer_id'] = sanitize_text_field($params['customer_id']);
+        }
+
+        // Handle order_number change (check for duplicates)
+        if (isset($params['order_number'])) {
+            $duplicate = $wpdb->get_var($wpdb->prepare(
+                "SELECT COUNT(*) FROM $table_orders WHERE order_number = %s AND id != %s",
+                sanitize_text_field($params['order_number']),
+                $id
+            ));
+            
+            if ($duplicate) {
+                return new WP_Error('duplicate_order', 'Order number already exists', array('status' => 409));
+            }
+            
+            $data['order_number'] = sanitize_text_field($params['order_number']);
+        }
+        
+        // Handle text fields
+        if (isset($params['description'])) {
+            $data['description'] = sanitize_textarea_field($params['description']);
+        }
+        
+        if (isset($params['fabric_details'])) {
+            $data['fabric_details'] = sanitize_textarea_field($params['fabric_details']);
+        }
+        
+        // Handle numeric fields
+        if (isset($params['price'])) {
+            $data['price'] = $params['price'] !== null ? (float)$params['price'] : null;
+        }
+        
+        if (isset($params['advance_payment'])) {
+            $data['advance_payment'] = $params['advance_payment'] !== null ? (float)$params['advance_payment'] : 0;
+        }
+        
+        // Handle delivery_date
+        if (isset($params['delivery_date'])) {
+            $data['delivery_date'] = sanitize_text_field($params['delivery_date']);
         }
 
         if (empty($data)) {
-            return new WP_REST_Response(array('success' => true), 200);
+            return new WP_REST_Response(array('success' => true, 'message' => 'No changes to update'), 200);
         }
 
         $updated = $wpdb->update($table_orders, $data, array('id' => $id));
 
         if ($updated === false) {
-            return new WP_Error('db_error', 'Could not update order', array('status' => 500));
+            return new WP_Error('db_error', 'Could not update order: ' . $wpdb->last_error, array('status' => 500));
         }
 
-        return new WP_REST_Response(array('success' => true), 200);
+        // Return updated order with proper structure
+        $updated_order = $this->get_order(new WP_REST_Request('GET', '', array('id' => $id)));
+        return new WP_REST_Response($updated_order->data, 200);
     }
 
     public function delete_order($request) {
@@ -190,12 +270,22 @@ class Tailor_Sahab_Orders_API {
         $table_orders = $wpdb->prefix . 'tailor_orders';
         $id = $request['id'];
 
+        // Check if order exists first
+        $exists = $wpdb->get_var($wpdb->prepare(
+            "SELECT COUNT(*) FROM $table_orders WHERE id = %s",
+            $id
+        ));
+
+        if (!$exists) {
+            return new WP_Error('not_found', 'Order not found', array('status' => 404));
+        }
+
         $deleted = $wpdb->delete($table_orders, array('id' => $id));
 
         if ($deleted === false) {
-            return new WP_Error('db_error', 'Could not delete order', array('status' => 500));
+            return new WP_Error('db_error', 'Could not delete order: ' . $wpdb->last_error, array('status' => 500));
         }
 
-        return new WP_REST_Response(array('success' => true), 200);
+        return new WP_REST_Response(array('success' => true, 'message' => 'Order deleted successfully'), 200);
     }
 }
